@@ -1,5 +1,6 @@
 # OMAPI Bypass
 
+![Main Downloads](https://img.shields.io/github/downloads/QueallyTech/OMAPI-Bypass/total?label=Main%20Repo%20Downloads) ![Xposed Downloads](https://img.shields.io/github/downloads/Xposed-Modules-Repo/com.queallytech.omapi/total?label=Xposed%20Repo%20Downloads)  
 **USE AT YOUR OWN RISK**  
 **Need Xposed**  
 Bypass ARA,ARF limit in `AccessControlEnforcer` and grant FullAccess.  
