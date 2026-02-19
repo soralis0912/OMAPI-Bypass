@@ -27,7 +27,7 @@ public class MainHook implements IXposedHookLoadPackage {
 
         try {
             XposedHelpers.findAndHookMethod(TARGET_CLASS, lpparam.classLoader, TARGET_METHOD, buildBypassHook());
-            logInfoIfEnabled("Hook registered");
+            logInfoAlways("Hook registered");
         } catch (Throwable t) {
             logError("Failed to hook AccessControlEnforcer", t);
         }
@@ -184,6 +184,10 @@ public class MainHook implements IXposedHookLoadPackage {
         if (preferences.getBoolean(Prefs.KEY_VERBOSE_LOG, false)) {
             XposedBridge.log(LOG_TAG + " [I] " + message);
         }
+    }
+
+    private static void logInfoAlways(String message) {
+        XposedBridge.log(LOG_TAG + " [I] " + message);
     }
 
     private static void logError(String message, Throwable t) {
