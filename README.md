@@ -1,13 +1,29 @@
 # OMAPI Policy Hook
 
-![Main Downloads](https://img.shields.io/github/downloads/QueallyTech/OMAPI-Bypass/total?label=Main%20Repo%20Downloads) ![Xposed Downloads](https://img.shields.io/github/downloads/Xposed-Modules-Repo/com.queallytech.omapi/total?label=Xposed%20Repo%20Downloads)  
-**USE AT YOUR OWN RISK**  
-**Need Xposed**  
-Bypass ARA,ARF limit in `AccessControlEnforcer` and grant FullAccess.  
+**Use at your own risk.**  
+**Xposed/LSPosed is required.**
 
-**How it works**  
-It hooks `com.android.se.security.AccessControlEnforcer.readSecurityProfile`, disables `mUseArf` and `mUseAra`, and grants `mFullAccess`.  
-Note: You may need to kill `com.android.se` by running `su -c killall com.android.se` in adb shell to activate it.
+OMAPI Policy Hook modifies access control behavior in
+`com.android.se.security.AccessControlEnforcer` to relax ARA/ARF checks and
+enable full access in supported environments.
 
-Logcat TAG: `OMAPI-Bypass`  
-see: [AccessControlEnforcer.java](https://cs.android.com/android/platform/superproject/main/+/main:packages/apps/SecureElement/src/com/android/se/security/AccessControlEnforcer.java;l=129)  
+## Download
+
+Get the latest APK from Releases:  
+https://github.com/soralis0912/OMAPI-PolicyHook/releases
+
+## How It Works
+
+The module hooks
+`com.android.se.security.AccessControlEnforcer.readSecurityProfile`,
+disables `mUseArf` and `mUseAra`, and sets `mFullAccess`.
+
+If changes do not take effect immediately, restart the SE service:
+
+```bash
+su -c killall com.android.se
+```
+
+Logcat tag: `OMAPI-PolicyHook`  
+Reference:
+[AccessControlEnforcer.java](https://cs.android.com/android/platform/superproject/main/+/main:packages/apps/SecureElement/src/com/android/se/security/AccessControlEnforcer.java;l=129)

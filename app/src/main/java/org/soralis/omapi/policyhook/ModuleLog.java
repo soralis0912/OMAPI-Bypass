@@ -4,7 +4,7 @@ import de.robv.android.xposed.XposedBridge;
 
 public final class ModuleLog {
 
-    private static final String LOG_TAG = "OMAPI-Bypass";
+    private static final String LOG_TAG = "OMAPI-PolicyHook";
 
     private ModuleLog() {
     }

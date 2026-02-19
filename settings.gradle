@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "OMAPI-Bypass"
+rootProject.name = "OMAPI-PolicyHook"
 include ':app'
