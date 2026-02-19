@@ -16,12 +16,11 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-public class MainActivity extends Activity {
+public class SettingsActivity extends Activity {
 
     private SharedPreferences prefs;
     private EditText targetAppInput;
@@ -170,17 +169,7 @@ public class MainActivity extends Activity {
     }
 
     private List<String> parseListPreference(String raw) {
-        Set<String> unique = new LinkedHashSet<>();
-        if (raw == null || raw.isEmpty()) {
-            return new ArrayList<>();
-        }
-        String[] lines = raw.split("\\n");
-        for (String line : lines) {
-            String value = line.trim();
-            if (!value.isEmpty()) {
-                unique.add(value);
-            }
-        }
+        Set<String> unique = Utils.parseNonEmptyLines(raw);
         return new ArrayList<>(unique);
     }
 
