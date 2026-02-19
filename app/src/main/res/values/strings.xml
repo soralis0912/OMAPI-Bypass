@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">OMAPI Bypass</string>
+    <string name="app_name">OMAPI Policy Hook</string>
     <string name="xposed_desc">Bypass ARA,ARF limit in OMAPI \n USE AT YOUR OWN RISK</string>
 
-    <string name="settings_title">OMAPI Bypass Settings</string>
+    <string name="settings_title">OMAPI Policy Hook Settings</string>
     <string name="settings_subtitle">This screen manages target package IDs and optional logs.</string>
     <string name="setting_verbose_log">Verbose logs to Xposed</string>
 

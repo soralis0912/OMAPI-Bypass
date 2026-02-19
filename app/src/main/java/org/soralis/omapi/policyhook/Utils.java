@@ -1,4 +1,4 @@
-package com.queallytech.omapi;
+package org.soralis.omapi.policyhook;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

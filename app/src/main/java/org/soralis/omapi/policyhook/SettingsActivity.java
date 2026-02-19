@@ -1,4 +1,4 @@
-package com.queallytech.omapi;
+package org.soralis.omapi.policyhook;
 
 import android.app.Activity;
 import android.app.AlertDialog;

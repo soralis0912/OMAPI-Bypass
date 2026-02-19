@@ -1,4 +1,4 @@
-package com.queallytech.omapi;
+package org.soralis.omapi.policyhook;
 
 import android.content.Context;
 import android.content.SharedPreferences;

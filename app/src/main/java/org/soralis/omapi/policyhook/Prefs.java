@@ -1,4 +1,4 @@
-package com.queallytech.omapi;
+package org.soralis.omapi.policyhook;
 
 public final class Prefs {
     private Prefs() {

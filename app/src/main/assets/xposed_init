@@ -1,1 +1,1 @@
-com.queallytech.omapi.AccessControlEnforcerHook
+org.soralis.omapi.policyhook.AccessControlEnforcerHook

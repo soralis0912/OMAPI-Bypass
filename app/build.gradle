@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'com.queallytech.omapi'
+    namespace 'org.soralis.omapi.policyhook'
     compileSdk 34
 
     buildFeatures {
@@ -39,7 +39,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.queallytech.omapi"
+        applicationId "org.soralis.omapi.policyhook"
         minSdk 24
         targetSdk 34
         versionCode 1
