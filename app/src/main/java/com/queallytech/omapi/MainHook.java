@@ -25,11 +25,9 @@ public class MainHook implements IXposedHookLoadPackage {
             return;
         }
 
-        logVerbose("handleLoadPackage(" + lpparam.packageName + ")");
-
         try {
             XposedHelpers.findAndHookMethod(TARGET_CLASS, lpparam.classLoader, TARGET_METHOD, buildBypassHook());
-            logInfo("Hook registered");
+            logInfoIfEnabled("Hook registered");
         } catch (Throwable t) {
             logError("Failed to hook AccessControlEnforcer", t);
         }
@@ -43,52 +41,29 @@ public class MainHook implements IXposedHookLoadPackage {
                 preferences.makeWorldReadable();
                 preferences.reload();
 
-                boolean bypassEnabled = preferences.getBoolean(Prefs.KEY_BYPASS_ENABLED, true);
-                if (!bypassEnabled) {
-                    logVerbose("Bypass disabled by user");
-                    return;
-                }
-
                 Set<String> targetApps = parseList(preferences.getString(Prefs.KEY_TARGET_APP, ""), false);
                 Set<String> targetHashes = parseList(preferences.getString(Prefs.KEY_TARGET_HASH, ""), true);
                 String callerPackage = resolveCallerPackage(param.thisObject);
                 String araMHash = resolveAraMHash(param.thisObject);
 
-                if (!matchesFilter(callerPackage, araMHash, targetApps, targetHashes)) {
-                    logVerbose("Skipped: target mismatch");
+                if (targetApps.isEmpty() && targetHashes.isEmpty()) {
                     return;
                 }
 
-                boolean disableArf = preferences.getBoolean(Prefs.KEY_DISABLE_ARF, true);
-                boolean disableAra = preferences.getBoolean(Prefs.KEY_DISABLE_ARA, true);
-                boolean enableFullAccess = preferences.getBoolean(Prefs.KEY_ENABLE_FULL_ACCESS, true);
-
-                if (disableArf) {
-                    XposedHelpers.setBooleanField(param.thisObject, "mUseArf", false);
-                }
-                if (disableAra) {
-                    XposedHelpers.setBooleanField(param.thisObject, "mUseAra", false);
-                }
-                if (enableFullAccess) {
-                    XposedHelpers.setBooleanField(param.thisObject, "mFullAccess", true);
+                if (!matchesFilter(callerPackage, araMHash, targetApps, targetHashes)) {
+                    return;
                 }
 
-                logVerbose("Applied settings: ARF=" + disableArf
-                        + " ARA=" + disableAra
-                        + " FULL=" + enableFullAccess
-                        + " APPS=" + targetApps
-                        + " HASHES=" + targetHashes
-                        + " CALLER=" + callerPackage
-                        + " ARAM=" + araMHash);
+                XposedHelpers.setBooleanField(param.thisObject, "mUseArf", false);
+                XposedHelpers.setBooleanField(param.thisObject, "mUseAra", false);
+                XposedHelpers.setBooleanField(param.thisObject, "mFullAccess", true);
+
+                logInfoIfEnabled("Bypass applied: CALLER=" + callerPackage + " ARAM=" + araMHash);
             }
         };
     }
 
     private static boolean matchesFilter(String callerPackage, String araMHash, Set<String> targetApps, Set<String> targetHashes) {
-        if (targetApps.isEmpty() && targetHashes.isEmpty()) {
-            return true;
-        }
-
         boolean appMatched = !isEmpty(callerPackage) && targetApps.contains(callerPackage);
         boolean hashMatched = !isEmpty(araMHash) && targetHashes.contains(araMHash);
         return appMatched || hashMatched;
@@ -203,16 +178,12 @@ public class MainHook implements IXposedHookLoadPackage {
         return value == null || value.isEmpty();
     }
 
-    private static void logVerbose(String message) {
+    private static void logInfoIfEnabled(String message) {
         XSharedPreferences preferences = new XSharedPreferences(BuildConfig.APPLICATION_ID, Prefs.PREF_FILE);
         preferences.reload();
         if (preferences.getBoolean(Prefs.KEY_VERBOSE_LOG, false)) {
-            XposedBridge.log(LOG_TAG + " [D] " + message);
+            XposedBridge.log(LOG_TAG + " [I] " + message);
         }
-    }
-
-    private static void logInfo(String message) {
-        XposedBridge.log(LOG_TAG + " [I] " + message);
     }
 
     private static void logError(String message, Throwable t) {

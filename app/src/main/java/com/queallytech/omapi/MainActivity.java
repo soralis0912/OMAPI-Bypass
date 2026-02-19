@@ -39,58 +39,22 @@ public class MainActivity extends Activity {
 
         prefs = getSettingsPrefs();
 
-        final Switch bypassEnabled = findViewById(R.id.switch_bypass_enabled);
-        final Switch disableArf = findViewById(R.id.switch_disable_arf);
-        final Switch disableAra = findViewById(R.id.switch_disable_ara);
-        final Switch fullAccess = findViewById(R.id.switch_full_access);
-        final Switch verboseLog = findViewById(R.id.switch_verbose_log);
         final Button pickTargetApp = findViewById(R.id.button_pick_target_app);
         final Button addTargetApp = findViewById(R.id.button_add_target_app);
         final Button removeTargetApp = findViewById(R.id.button_remove_target_app);
         final Button addTargetHash = findViewById(R.id.button_add_target_hash);
         final Button removeTargetHash = findViewById(R.id.button_remove_target_hash);
+        final Switch verboseLog = findViewById(R.id.switch_verbose_log);
         targetAppInput = findViewById(R.id.edit_target_app);
         targetHashInput = findViewById(R.id.edit_target_hash);
         targetAppsListText = findViewById(R.id.text_target_apps_list);
         targetHashesListText = findViewById(R.id.text_target_hashes_list);
-        final TextView summary = findViewById(R.id.text_summary);
-
-        bypassEnabled.setChecked(prefs.getBoolean(Prefs.KEY_BYPASS_ENABLED, true));
-        disableArf.setChecked(prefs.getBoolean(Prefs.KEY_DISABLE_ARF, true));
-        disableAra.setChecked(prefs.getBoolean(Prefs.KEY_DISABLE_ARA, true));
-        fullAccess.setChecked(prefs.getBoolean(Prefs.KEY_ENABLE_FULL_ACCESS, true));
-        verboseLog.setChecked(prefs.getBoolean(Prefs.KEY_VERBOSE_LOG, false));
         targetApps.clear();
         targetApps.addAll(parseListPreference(prefs.getString(Prefs.KEY_TARGET_APP, "")));
         targetHashes.clear();
         targetHashes.addAll(parseListPreference(prefs.getString(Prefs.KEY_TARGET_HASH, "")));
+        verboseLog.setChecked(prefs.getBoolean(Prefs.KEY_VERBOSE_LOG, false));
         refreshListViews();
-
-        updateSummary(summary, bypassEnabled.isChecked(), disableArf.isChecked(), disableAra.isChecked(), fullAccess.isChecked());
-
-        bypassEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            prefs.edit().putBoolean(Prefs.KEY_BYPASS_ENABLED, isChecked).apply();
-            makePrefsWorldReadable();
-            updateSummary(summary, isChecked, disableArf.isChecked(), disableAra.isChecked(), fullAccess.isChecked());
-        });
-
-        disableArf.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            prefs.edit().putBoolean(Prefs.KEY_DISABLE_ARF, isChecked).apply();
-            makePrefsWorldReadable();
-            updateSummary(summary, bypassEnabled.isChecked(), isChecked, disableAra.isChecked(), fullAccess.isChecked());
-        });
-
-        disableAra.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            prefs.edit().putBoolean(Prefs.KEY_DISABLE_ARA, isChecked).apply();
-            makePrefsWorldReadable();
-            updateSummary(summary, bypassEnabled.isChecked(), disableArf.isChecked(), isChecked, fullAccess.isChecked());
-        });
-
-        fullAccess.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            prefs.edit().putBoolean(Prefs.KEY_ENABLE_FULL_ACCESS, isChecked).apply();
-            makePrefsWorldReadable();
-            updateSummary(summary, bypassEnabled.isChecked(), disableArf.isChecked(), disableAra.isChecked(), isChecked);
-        });
 
         verboseLog.setOnCheckedChangeListener((buttonView, isChecked) -> {
             prefs.edit().putBoolean(Prefs.KEY_VERBOSE_LOG, isChecked).apply();
@@ -123,21 +87,6 @@ public class MainActivity extends Activity {
             //noinspection ResultOfMethodCallIgnored
             xml.setReadable(true, false);
         }
-    }
-
-    private void updateSummary(TextView summary, boolean bypassEnabled, boolean disableArf,
-                               boolean disableAra, boolean fullAccess) {
-        if (!bypassEnabled) {
-            summary.setText(R.string.summary_disabled);
-            return;
-        }
-
-        if (disableArf && disableAra && fullAccess) {
-            summary.setText(R.string.summary_full);
-            return;
-        }
-
-        summary.setText(R.string.summary_custom);
     }
 
     private void addTargetAppFromInput() {
