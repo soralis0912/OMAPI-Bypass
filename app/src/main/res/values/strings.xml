@@ -3,24 +3,21 @@
     <string name="xposed_desc">Bypass ARA,ARF limit in OMAPI \n USE AT YOUR OWN RISK</string>
 
     <string name="settings_title">OMAPI Bypass Settings</string>
-    <string name="settings_subtitle">Enable/disable this module from LSPosed. This screen manages targets and optional logs.</string>
+    <string name="settings_subtitle">This screen manages target package IDs and optional logs.</string>
     <string name="setting_verbose_log">Verbose logs to Xposed</string>
 
-    <string name="setting_target_title">Bypass target (App or Hash)</string>
+    <string name="setting_target_title">Bypass target package IDs</string>
     <string name="setting_target_app_input_hint">Add app package (e.g. com.example.app)</string>
     <string name="setting_pick_target_app">Pick installed app</string>
-    <string name="setting_target_hash_hint">Add target ARA-M hash (hex)</string>
     <string name="picker_title">Select app package</string>
     <string name="picker_empty">No launchable apps found.</string>
     <string name="action_add">Add</string>
     <string name="action_remove">Remove</string>
+    <string name="action_restart_se_service">Restart SE service</string>
     <string name="remove_app_title">Remove package IDs</string>
-    <string name="remove_hash_title">Remove ARA-M hashes</string>
     <string name="list_empty_placeholder">(none)</string>
     <string name="item_already_exists">Already added.</string>
     <string name="list_is_empty">List is empty.</string>
-    <string name="recent_calls_title">Recent calls (latest 10)</string>
-    <string name="add_from_recent">Allow from recent calls</string>
-    <string name="recent_picker_title">Select recent call</string>
-    <string name="added_from_recent">Added from recent call.</string>
+    <string name="restart_service_done">SE service restart command sent.</string>
+    <string name="restart_service_failed">Failed to restart SE service.</string>
 </resources>

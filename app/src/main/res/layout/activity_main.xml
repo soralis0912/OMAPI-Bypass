@@ -10,7 +10,6 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/text_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/settings_title"
@@ -18,7 +17,6 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/text_subtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -86,67 +84,11 @@
             android:text="@string/list_empty_placeholder"
             android:textAppearance="@android:style/TextAppearance.Material.Small" />
 
-        <EditText
-            android:id="@+id/edit_target_hash"
+        <Button
+            android:id="@+id/button_restart_se_service"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="@string/setting_target_hash_hint"
-            android:inputType="textNoSuggestions"
-            android:maxLines="1" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/button_add_target_hash"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/action_add" />
-
-            <Button
-                android:id="@+id/button_remove_target_hash"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:text="@string/action_remove" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/text_target_hashes_list"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/list_empty_placeholder"
-            android:textAppearance="@android:style/TextAppearance.Material.Small" />
-
-        <TextView
-            android:id="@+id/text_recent_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="@string/recent_calls_title"
-            android:textStyle="bold" />
-
-        <Button
-            android:id="@+id/button_add_from_recent"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/add_from_recent" />
-
-        <TextView
-            android:id="@+id/text_recent_calls"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/list_empty_placeholder"
-            android:textAppearance="@android:style/TextAppearance.Material.Small" />
-
+            android:text="@string/action_restart_se_service" />
     </LinearLayout>
 </ScrollView>

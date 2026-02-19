@@ -1,11 +1,6 @@
 package com.queallytech.omapi;
 
-import android.content.Context;
-import android.content.Intent;
-
-import java.lang.reflect.Field;
 import java.util.LinkedHashSet;
-import java.util.Locale;
 import java.util.Set;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
@@ -20,7 +15,7 @@ public class MainHook implements IXposedHookLoadPackage {
     private static final String LOG_TAG = "OMAPI-Bypass";
     private static final String TARGET_PACKAGE = "com.android.se";
     private static final String TARGET_CLASS = "com.android.se.security.AccessControlEnforcer";
-    private static final String TARGET_METHOD = "readSecurityProfile";
+    private static final String TARGET_METHOD_SET_UP_CHANNEL_ACCESS = "setUpChannelAccess";
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) {
@@ -29,8 +24,9 @@ public class MainHook implements IXposedHookLoadPackage {
         }
 
         try {
-            XposedHelpers.findAndHookMethod(TARGET_CLASS, lpparam.classLoader, TARGET_METHOD, buildBypassHook());
-            logInfoAlways("Hook registered");
+            Class<?> clazz = XposedHelpers.findClass(TARGET_CLASS, lpparam.classLoader);
+            XposedBridge.hookAllMethods(clazz, TARGET_METHOD_SET_UP_CHANNEL_ACCESS, buildBypassHook());
+            logInfo("Hook registered: setUpChannelAccess");
         } catch (Throwable t) {
             logError("Failed to hook AccessControlEnforcer", t);
         }
@@ -39,45 +35,49 @@ public class MainHook implements IXposedHookLoadPackage {
     private static XC_MethodHook buildBypassHook() {
         return new XC_MethodHook() {
             @Override
-            protected void afterHookedMethod(MethodHookParam param) {
-                XSharedPreferences preferences = new XSharedPreferences(BuildConfig.APPLICATION_ID, Prefs.PREF_FILE);
-                preferences.makeWorldReadable();
-                preferences.reload();
-                boolean verbose = preferences.getBoolean(Prefs.KEY_VERBOSE_LOG, false);
-                if (verbose) {
-                    logRawArgs(param.args);
+            protected void beforeHookedMethod(MethodHookParam param) {
+                try {
+                    XSharedPreferences preferences = new XSharedPreferences(BuildConfig.APPLICATION_ID, Prefs.PREF_FILE);
+                    preferences.reload();
+
+                    String rawApps = safeTrim(preferences.getString(Prefs.KEY_TARGET_APP, ""));
+                    Set<String> targetApps = parseList(rawApps);
+                    if (targetApps.isEmpty()) {
+                        return;
+                    }
+
+                    String callerPackage = resolveCallerPackage(param.args);
+                    if (isEmpty(callerPackage) || !targetApps.contains(callerPackage)) {
+                        return;
+                    }
+
+                    XposedHelpers.setBooleanField(param.thisObject, "mUseArf", false);
+                    XposedHelpers.setBooleanField(param.thisObject, "mUseAra", false);
+                    XposedHelpers.setBooleanField(param.thisObject, "mFullAccess", true);
+
+                    if (preferences.getBoolean(Prefs.KEY_VERBOSE_LOG, false)) {
+                        XposedBridge.log(LOG_TAG + " [I] Bypass applied: CALLER=" + callerPackage);
+                    }
+                } catch (Throwable t) {
+                    logError("beforeHookedMethod failed", t);
                 }
-
-                Set<String> targetApps = parseList(preferences.getString(Prefs.KEY_TARGET_APP, ""), false);
-                Set<String> targetHashes = parseList(preferences.getString(Prefs.KEY_TARGET_HASH, ""), true);
-                String callerPackage = resolveCallerPackage(param.thisObject);
-                String araMHash = resolveAraMHash(param.thisObject);
-                recordRecentCall(param.thisObject, callerPackage, araMHash);
-
-                if (targetApps.isEmpty() && targetHashes.isEmpty()) {
-                    return;
-                }
-
-                if (!matchesFilter(callerPackage, araMHash, targetApps, targetHashes)) {
-                    return;
-                }
-
-                XposedHelpers.setBooleanField(param.thisObject, "mUseArf", false);
-                XposedHelpers.setBooleanField(param.thisObject, "mUseAra", false);
-                XposedHelpers.setBooleanField(param.thisObject, "mFullAccess", true);
-
-                logInfoIfEnabled("Bypass applied: CALLER=" + callerPackage + " ARAM=" + araMHash);
             }
         };
     }
 
-    private static boolean matchesFilter(String callerPackage, String araMHash, Set<String> targetApps, Set<String> targetHashes) {
-        boolean appMatched = !isEmpty(callerPackage) && targetApps.contains(callerPackage);
-        boolean hashMatched = !isEmpty(araMHash) && targetHashes.contains(araMHash);
-        return appMatched || hashMatched;
+    private static String resolveCallerPackage(Object[] args) {
+        if (args == null || args.length < 2) {
+            return "";
+        }
+        Object value = args[1];
+        if (!(value instanceof String)) {
+            return "";
+        }
+        String packageName = safeTrim((String) value);
+        return looksLikePackageName(packageName) ? packageName : "";
     }
 
-    private static Set<String> parseList(String raw, boolean normalizeHash) {
+    private static Set<String> parseList(String raw) {
         Set<String> items = new LinkedHashSet<>();
         if (raw == null || raw.isEmpty()) {
             return items;
@@ -86,121 +86,11 @@ public class MainHook implements IXposedHookLoadPackage {
         String[] lines = raw.split("\\n");
         for (String line : lines) {
             String value = safeTrim(line);
-            if (normalizeHash) {
-                value = normalizeHash(value);
-            }
             if (!isEmpty(value)) {
                 items.add(value);
             }
         }
         return items;
-    }
-
-    private static String resolveCallerPackage(Object accessControlEnforcer) {
-        for (String fieldName : new String[]{
-                "mPackageName",
-                "mCallingPackage",
-                "mCallerPackageName",
-                "mClientPackageName"
-        }) {
-            Object value = readField(accessControlEnforcer, fieldName);
-            if (value instanceof String) {
-                String packageName = safeTrim((String) value);
-                if (!isEmpty(packageName)) {
-                    return packageName;
-                }
-            }
-        }
-        return "";
-    }
-
-    private static String resolveAraMHash(Object accessControlEnforcer) {
-        for (String fieldName : new String[]{
-                "mAraMHash",
-                "mAramHash",
-                "mCertificateHash",
-                "mCertHash",
-                "mCallerCertHash"
-        }) {
-            Object value = readField(accessControlEnforcer, fieldName);
-            String hash = normalizeHashObject(value);
-            if (!isEmpty(hash)) {
-                return hash;
-            }
-        }
-        return "";
-    }
-
-    private static Object readField(Object instance, String name) {
-        if (instance == null) {
-            return null;
-        }
-        Class<?> clazz = instance.getClass();
-        while (clazz != null) {
-            try {
-                Field field = clazz.getDeclaredField(name);
-                field.setAccessible(true);
-                return field.get(instance);
-            } catch (NoSuchFieldException ignored) {
-                clazz = clazz.getSuperclass();
-            } catch (Throwable t) {
-                return null;
-            }
-        }
-        return null;
-    }
-
-    private static void recordRecentCall(Object accessControlEnforcer, String callerPackage, String araMHash) {
-        if (isEmpty(callerPackage) && isEmpty(araMHash)) {
-            return;
-        }
-        Object contextObject = readField(accessControlEnforcer, "mContext");
-        if (!(contextObject instanceof Context)) {
-            return;
-        }
-        Context context = (Context) contextObject;
-        Intent intent = new Intent(Prefs.ACTION_RECORD_RECENT_CALL);
-        intent.setPackage(BuildConfig.APPLICATION_ID);
-        intent.putExtra(Prefs.EXTRA_CALLER_PACKAGE, callerPackage);
-        intent.putExtra(Prefs.EXTRA_ARAM_HASH, araMHash);
-        try {
-            context.sendBroadcast(intent);
-        } catch (Throwable ignored) {
-            // Ignore broadcast failures to avoid impacting OMAPI flow.
-        }
-    }
-
-    private static String normalizeHashObject(Object value) {
-        if (value instanceof byte[]) {
-            return bytesToHex((byte[]) value);
-        }
-        if (value instanceof String) {
-            String raw = safeTrim((String) value);
-            String normalized = normalizeHash(raw);
-            if (!normalized.isEmpty() && normalized.length() >= 16) {
-                return normalized;
-            }
-            return "";
-        }
-        return "";
-    }
-
-    private static String bytesToHex(byte[] bytes) {
-        char[] out = new char[bytes.length * 2];
-        final char[] hex = "0123456789abcdef".toCharArray();
-        for (int i = 0; i < bytes.length; i++) {
-            int value = bytes[i] & 0xFF;
-            out[i * 2] = hex[value >>> 4];
-            out[i * 2 + 1] = hex[value & 0x0F];
-        }
-        return new String(out);
-    }
-
-    private static String normalizeHash(String value) {
-        if (value == null) {
-            return "";
-        }
-        return value.toLowerCase(Locale.ROOT).replaceAll("[^0-9a-f]", "");
     }
 
     private static String safeTrim(String value) {
@@ -211,38 +101,17 @@ public class MainHook implements IXposedHookLoadPackage {
         return value == null || value.isEmpty();
     }
 
-    private static void logInfoIfEnabled(String message) {
-        XSharedPreferences preferences = new XSharedPreferences(BuildConfig.APPLICATION_ID, Prefs.PREF_FILE);
-        preferences.reload();
-        if (preferences.getBoolean(Prefs.KEY_VERBOSE_LOG, false)) {
-            XposedBridge.log(LOG_TAG + " [I] " + message);
+    private static boolean looksLikePackageName(String value) {
+        if (isEmpty(value)) {
+            return false;
         }
+        if (!value.contains(".")) {
+            return false;
+        }
+        return value.matches("^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z0-9_]+)+$");
     }
 
-    private static void logRawArgs(Object[] args) {
-        if (args == null) {
-            XposedBridge.log(LOG_TAG + " [D] rawArgs=null");
-            return;
-        }
-        XposedBridge.log(LOG_TAG + " [D] rawArgs count=" + args.length);
-        for (int i = 0; i < args.length; i++) {
-            Object arg = args[i];
-            if (arg == null) {
-                XposedBridge.log(LOG_TAG + " [D] arg[" + i + "]=null");
-                continue;
-            }
-            String type = arg.getClass().getName();
-            if (arg instanceof byte[]) {
-                byte[] bytes = (byte[]) arg;
-                XposedBridge.log(LOG_TAG + " [D] arg[" + i + "] type=" + type
-                        + " len=" + bytes.length + " hex=" + bytesToHex(bytes));
-            } else {
-                XposedBridge.log(LOG_TAG + " [D] arg[" + i + "] type=" + type + " value=" + String.valueOf(arg));
-            }
-        }
-    }
-
-    private static void logInfoAlways(String message) {
+    private static void logInfo(String message) {
         XposedBridge.log(LOG_TAG + " [I] " + message);
     }
 
