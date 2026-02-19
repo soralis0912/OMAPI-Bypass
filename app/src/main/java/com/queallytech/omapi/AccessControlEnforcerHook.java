@@ -9,7 +9,7 @@ import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
-public class MainHook implements IXposedHookLoadPackage {
+public class AccessControlEnforcerHook implements IXposedHookLoadPackage {
 
     private static final String TARGET_PACKAGE = "com.android.se";
     private static final String TARGET_CLASS = "com.android.se.security.AccessControlEnforcer";
