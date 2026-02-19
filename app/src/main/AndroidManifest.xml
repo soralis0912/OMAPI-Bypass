@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
     <application
         android:label="@string/app_name"
         tools:ignore="AllowBackup,MissingApplicationIcon">
@@ -26,6 +33,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".RecentCallReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.queallytech.omapi.action.RECORD_RECENT_CALL" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
