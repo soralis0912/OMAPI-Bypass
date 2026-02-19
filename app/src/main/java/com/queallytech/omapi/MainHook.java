@@ -37,6 +37,9 @@ public class MainHook implements IXposedHookLoadPackage {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
                 try {
+                    // Reset per-call flags first to avoid leaking bypass state to the next caller.
+                    applyDefaultAccessFlags(param.thisObject);
+
                     XSharedPreferences preferences = new XSharedPreferences(BuildConfig.APPLICATION_ID, Prefs.PREF_FILE);
                     preferences.reload();
 
@@ -51,9 +54,7 @@ public class MainHook implements IXposedHookLoadPackage {
                         return;
                     }
 
-                    XposedHelpers.setBooleanField(param.thisObject, "mUseArf", false);
-                    XposedHelpers.setBooleanField(param.thisObject, "mUseAra", false);
-                    XposedHelpers.setBooleanField(param.thisObject, "mFullAccess", true);
+                    applyBypassAccessFlags(param.thisObject);
 
                     if (preferences.getBoolean(Prefs.KEY_VERBOSE_LOG, false)) {
                         XposedBridge.log(LOG_TAG + " [I] Bypass applied: CALLER=" + callerPackage);
@@ -63,6 +64,18 @@ public class MainHook implements IXposedHookLoadPackage {
                 }
             }
         };
+    }
+
+    private static void applyDefaultAccessFlags(Object accessControlEnforcer) {
+        XposedHelpers.setBooleanField(accessControlEnforcer, "mUseArf", true);
+        XposedHelpers.setBooleanField(accessControlEnforcer, "mUseAra", true);
+        XposedHelpers.setBooleanField(accessControlEnforcer, "mFullAccess", false);
+    }
+
+    private static void applyBypassAccessFlags(Object accessControlEnforcer) {
+        XposedHelpers.setBooleanField(accessControlEnforcer, "mUseArf", false);
+        XposedHelpers.setBooleanField(accessControlEnforcer, "mUseAra", false);
+        XposedHelpers.setBooleanField(accessControlEnforcer, "mFullAccess", true);
     }
 
     private static String resolveCallerPackage(Object[] args) {
