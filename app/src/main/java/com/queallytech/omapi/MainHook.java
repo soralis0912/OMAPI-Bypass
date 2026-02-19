@@ -1,13 +1,14 @@
 package com.queallytech.omapi;
 
-import android.util.Log;
-
 import java.lang.reflect.Field;
+import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Set;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XSharedPreferences;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
@@ -28,9 +29,9 @@ public class MainHook implements IXposedHookLoadPackage {
 
         try {
             XposedHelpers.findAndHookMethod(TARGET_CLASS, lpparam.classLoader, TARGET_METHOD, buildBypassHook());
-            Log.i(LOG_TAG, "Hook registered");
+            logInfo("Hook registered");
         } catch (Throwable t) {
-            Log.e(LOG_TAG, "Failed to hook AccessControlEnforcer", t);
+            logError("Failed to hook AccessControlEnforcer", t);
         }
     }
 
@@ -48,12 +49,12 @@ public class MainHook implements IXposedHookLoadPackage {
                     return;
                 }
 
-                String targetApp = safeTrim(preferences.getString(Prefs.KEY_TARGET_APP, ""));
-                String targetHash = normalizeHash(preferences.getString(Prefs.KEY_TARGET_HASH, ""));
+                Set<String> targetApps = parseList(preferences.getString(Prefs.KEY_TARGET_APP, ""), false);
+                Set<String> targetHashes = parseList(preferences.getString(Prefs.KEY_TARGET_HASH, ""), true);
                 String callerPackage = resolveCallerPackage(param.thisObject);
                 String araMHash = resolveAraMHash(param.thisObject);
 
-                if (!matchesFilter(callerPackage, araMHash, targetApp, targetHash)) {
+                if (!matchesFilter(callerPackage, araMHash, targetApps, targetHashes)) {
                     logVerbose("Skipped: target mismatch");
                     return;
                 }
@@ -75,22 +76,41 @@ public class MainHook implements IXposedHookLoadPackage {
                 logVerbose("Applied settings: ARF=" + disableArf
                         + " ARA=" + disableAra
                         + " FULL=" + enableFullAccess
-                        + " APP=" + targetApp
-                        + " HASH=" + targetHash
+                        + " APPS=" + targetApps
+                        + " HASHES=" + targetHashes
                         + " CALLER=" + callerPackage
                         + " ARAM=" + araMHash);
             }
         };
     }
 
-    private static boolean matchesFilter(String callerPackage, String araMHash, String targetApp, String targetHash) {
-        if (isEmpty(targetApp) && isEmpty(targetHash)) {
+    private static boolean matchesFilter(String callerPackage, String araMHash, Set<String> targetApps, Set<String> targetHashes) {
+        if (targetApps.isEmpty() && targetHashes.isEmpty()) {
             return true;
         }
 
-        boolean appMatched = !isEmpty(targetApp) && targetApp.equals(callerPackage);
-        boolean hashMatched = !isEmpty(targetHash) && targetHash.equals(araMHash);
+        boolean appMatched = !isEmpty(callerPackage) && targetApps.contains(callerPackage);
+        boolean hashMatched = !isEmpty(araMHash) && targetHashes.contains(araMHash);
         return appMatched || hashMatched;
+    }
+
+    private static Set<String> parseList(String raw, boolean normalizeHash) {
+        Set<String> items = new LinkedHashSet<>();
+        if (raw == null || raw.isEmpty()) {
+            return items;
+        }
+
+        String[] lines = raw.split("\\n");
+        for (String line : lines) {
+            String value = safeTrim(line);
+            if (normalizeHash) {
+                value = normalizeHash(value);
+            }
+            if (!isEmpty(value)) {
+                items.add(value);
+            }
+        }
+        return items;
     }
 
     private static String resolveCallerPackage(Object accessControlEnforcer) {
@@ -187,7 +207,16 @@ public class MainHook implements IXposedHookLoadPackage {
         XSharedPreferences preferences = new XSharedPreferences(BuildConfig.APPLICATION_ID, Prefs.PREF_FILE);
         preferences.reload();
         if (preferences.getBoolean(Prefs.KEY_VERBOSE_LOG, false)) {
-            Log.d(LOG_TAG, message);
+            XposedBridge.log(LOG_TAG + " [D] " + message);
         }
+    }
+
+    private static void logInfo(String message) {
+        XposedBridge.log(LOG_TAG + " [I] " + message);
+    }
+
+    private static void logError(String message, Throwable t) {
+        XposedBridge.log(LOG_TAG + " [E] " + message);
+        XposedBridge.log(t);
     }
 }

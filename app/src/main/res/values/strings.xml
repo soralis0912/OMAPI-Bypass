@@ -11,8 +11,18 @@
     <string name="setting_full_access">Force full access</string>
     <string name="setting_verbose_log">Verbose Xposed logs</string>
     <string name="setting_target_title">Bypass target (App or Hash)</string>
-    <string name="setting_target_app_hint">Target app package (e.g. com.example.app)</string>
-    <string name="setting_target_hash_hint">Target ARA-M hash (hex)</string>
+    <string name="setting_target_app_input_hint">Add app package (e.g. com.example.app)</string>
+    <string name="setting_pick_target_app">Pick installed app</string>
+    <string name="setting_target_hash_hint">Add target ARA-M hash (hex)</string>
+    <string name="picker_title">Select app package</string>
+    <string name="picker_empty">No launchable apps found.</string>
+    <string name="action_add">Add</string>
+    <string name="action_remove">Remove</string>
+    <string name="remove_app_title">Remove package IDs</string>
+    <string name="remove_hash_title">Remove ARA-M hashes</string>
+    <string name="list_empty_placeholder">(none)</string>
+    <string name="item_already_exists">Already added.</string>
+    <string name="list_is_empty">List is empty.</string>
 
     <string name="summary_disabled">Bypass is disabled.</string>
     <string name="summary_full">Bypass enabled with full relax mode.</string>
