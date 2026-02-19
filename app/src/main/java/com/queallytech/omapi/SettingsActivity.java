@@ -51,7 +51,7 @@ public class SettingsActivity extends Activity {
         refreshListViews();
 
         verboseLog.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            prefs.edit().putBoolean(Prefs.KEY_VERBOSE_LOG, isChecked).commit();
+            prefs.edit().putBoolean(Prefs.KEY_VERBOSE_LOG, isChecked).apply();
             PrefAccess.ensureWorldReadable(this);
         });
 
@@ -189,7 +189,7 @@ public class SettingsActivity extends Activity {
     }
 
     private void persistTargetApps() {
-        prefs.edit().putString(Prefs.KEY_TARGET_APP, joinLines(targetApps)).commit();
+        prefs.edit().putString(Prefs.KEY_TARGET_APP, joinLines(targetApps)).apply();
         PrefAccess.ensureWorldReadable(this);
     }
 

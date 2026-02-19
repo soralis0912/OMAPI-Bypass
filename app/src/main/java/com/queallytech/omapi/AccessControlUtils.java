@@ -1,8 +1,13 @@
 package com.queallytech.omapi;
 
+import java.util.regex.Pattern;
+
 import de.robv.android.xposed.XposedHelpers;
 
 public final class AccessControlUtils {
+
+    private static final Pattern PACKAGE_NAME_PATTERN =
+            Pattern.compile("^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z0-9_]+)+$");
 
     private AccessControlUtils() {
     }
@@ -38,6 +43,6 @@ public final class AccessControlUtils {
         if (!value.contains(".")) {
             return false;
         }
-        return value.matches("^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z0-9_]+)+$");
+        return PACKAGE_NAME_PATTERN.matcher(value).matches();
     }
 }

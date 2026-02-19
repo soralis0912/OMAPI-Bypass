@@ -1,5 +1,6 @@
 package com.queallytech.omapi;
 
+import java.util.Collections;
 import java.util.Set;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
@@ -14,6 +15,11 @@ public class AccessControlEnforcerHook implements IXposedHookLoadPackage {
     private static final String TARGET_PACKAGE = "com.android.se";
     private static final String TARGET_CLASS = "com.android.se.security.AccessControlEnforcer";
     private static final String TARGET_METHOD_SET_UP_CHANNEL_ACCESS = "setUpChannelAccess";
+    private static final XSharedPreferences PREFERENCES =
+            new XSharedPreferences(BuildConfig.APPLICATION_ID, Prefs.PREF_FILE);
+
+    private static volatile String cachedRawApps = "";
+    private static volatile Set<String> cachedTargetApps = Collections.emptySet();
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) {
@@ -38,11 +44,10 @@ public class AccessControlEnforcerHook implements IXposedHookLoadPackage {
                     // Reset per-call flags first to avoid leaking bypass state to the next caller.
                     AccessControlUtils.applyDefaultAccessFlags(param.thisObject);
 
-                    XSharedPreferences preferences = new XSharedPreferences(BuildConfig.APPLICATION_ID, Prefs.PREF_FILE);
-                    preferences.reload();
+                    PREFERENCES.reload();
 
-                    String rawApps = Utils.safeTrim(preferences.getString(Prefs.KEY_TARGET_APP, ""));
-                    Set<String> targetApps = Utils.parseNonEmptyLines(rawApps);
+                    String rawApps = Utils.safeTrim(PREFERENCES.getString(Prefs.KEY_TARGET_APP, ""));
+                    Set<String> targetApps = getTargetApps(rawApps);
                     if (targetApps.isEmpty()) {
                         return;
                     }
@@ -54,7 +59,7 @@ public class AccessControlEnforcerHook implements IXposedHookLoadPackage {
 
                     AccessControlUtils.applyBypassAccessFlags(param.thisObject);
 
-                    if (preferences.getBoolean(Prefs.KEY_VERBOSE_LOG, false)) {
+                    if (PREFERENCES.getBoolean(Prefs.KEY_VERBOSE_LOG, false)) {
                         ModuleLog.info("Bypass applied: CALLER=" + callerPackage);
                     }
                 } catch (Throwable t) {
@@ -62,5 +67,15 @@ public class AccessControlEnforcerHook implements IXposedHookLoadPackage {
                 }
             }
         };
+    }
+
+    private static Set<String> getTargetApps(String rawApps) {
+        if (rawApps.equals(cachedRawApps)) {
+            return cachedTargetApps;
+        }
+        Set<String> parsed = Collections.unmodifiableSet(Utils.parseNonEmptyLines(rawApps));
+        cachedRawApps = rawApps;
+        cachedTargetApps = parsed;
+        return parsed;
     }
 }
