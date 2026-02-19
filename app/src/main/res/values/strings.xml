@@ -1,4 +1,20 @@
 <resources>
     <string name="app_name">OMAPI Bypass</string>
     <string name="xposed_desc">Bypass ARA,ARF limit in OMAPI \n USE AT YOUR OWN RISK</string>
+
+    <string name="settings_title">OMAPI Bypass Settings</string>
+    <string name="settings_subtitle">Changes apply on next com.android.se reload.</string>
+
+    <string name="setting_bypass_enabled">Enable bypass</string>
+    <string name="setting_disable_arf">Disable ARF checks</string>
+    <string name="setting_disable_ara">Disable ARA checks</string>
+    <string name="setting_full_access">Force full access</string>
+    <string name="setting_verbose_log">Verbose Xposed logs</string>
+    <string name="setting_target_title">Bypass target (App or Hash)</string>
+    <string name="setting_target_app_hint">Target app package (e.g. com.example.app)</string>
+    <string name="setting_target_hash_hint">Target ARA-M hash (hex)</string>
+
+    <string name="summary_disabled">Bypass is disabled.</string>
+    <string name="summary_full">Bypass enabled with full relax mode.</string>
+    <string name="summary_custom">Bypass enabled with custom options.</string>
 </resources>
