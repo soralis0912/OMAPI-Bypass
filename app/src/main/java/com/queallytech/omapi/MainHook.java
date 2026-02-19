@@ -43,6 +43,10 @@ public class MainHook implements IXposedHookLoadPackage {
                 XSharedPreferences preferences = new XSharedPreferences(BuildConfig.APPLICATION_ID, Prefs.PREF_FILE);
                 preferences.makeWorldReadable();
                 preferences.reload();
+                boolean verbose = preferences.getBoolean(Prefs.KEY_VERBOSE_LOG, false);
+                if (verbose) {
+                    logRawArgs(param.args);
+                }
 
                 Set<String> targetApps = parseList(preferences.getString(Prefs.KEY_TARGET_APP, ""), false);
                 Set<String> targetHashes = parseList(preferences.getString(Prefs.KEY_TARGET_HASH, ""), true);
@@ -171,7 +175,12 @@ public class MainHook implements IXposedHookLoadPackage {
             return bytesToHex((byte[]) value);
         }
         if (value instanceof String) {
-            return normalizeHash((String) value);
+            String raw = safeTrim((String) value);
+            String normalized = normalizeHash(raw);
+            if (!normalized.isEmpty() && normalized.length() >= 16) {
+                return normalized;
+            }
+            return "";
         }
         return "";
     }
@@ -207,6 +216,29 @@ public class MainHook implements IXposedHookLoadPackage {
         preferences.reload();
         if (preferences.getBoolean(Prefs.KEY_VERBOSE_LOG, false)) {
             XposedBridge.log(LOG_TAG + " [I] " + message);
+        }
+    }
+
+    private static void logRawArgs(Object[] args) {
+        if (args == null) {
+            XposedBridge.log(LOG_TAG + " [D] rawArgs=null");
+            return;
+        }
+        XposedBridge.log(LOG_TAG + " [D] rawArgs count=" + args.length);
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            if (arg == null) {
+                XposedBridge.log(LOG_TAG + " [D] arg[" + i + "]=null");
+                continue;
+            }
+            String type = arg.getClass().getName();
+            if (arg instanceof byte[]) {
+                byte[] bytes = (byte[]) arg;
+                XposedBridge.log(LOG_TAG + " [D] arg[" + i + "] type=" + type
+                        + " len=" + bytes.length + " hex=" + bytesToHex(bytes));
+            } else {
+                XposedBridge.log(LOG_TAG + " [D] arg[" + i + "] type=" + type + " value=" + String.valueOf(arg));
+            }
         }
     }
 
