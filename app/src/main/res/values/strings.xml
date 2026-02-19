@@ -19,4 +19,8 @@
     <string name="list_empty_placeholder">(none)</string>
     <string name="item_already_exists">Already added.</string>
     <string name="list_is_empty">List is empty.</string>
+    <string name="recent_calls_title">Recent calls (latest 10)</string>
+    <string name="add_from_recent">Allow from recent calls</string>
+    <string name="recent_picker_title">Select recent call</string>
+    <string name="added_from_recent">Added from recent call.</string>
 </resources>

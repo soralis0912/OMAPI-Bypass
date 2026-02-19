@@ -1,5 +1,8 @@
 package com.queallytech.omapi;
 
+import android.content.Context;
+import android.content.Intent;
+
 import java.lang.reflect.Field;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -45,6 +48,7 @@ public class MainHook implements IXposedHookLoadPackage {
                 Set<String> targetHashes = parseList(preferences.getString(Prefs.KEY_TARGET_HASH, ""), true);
                 String callerPackage = resolveCallerPackage(param.thisObject);
                 String araMHash = resolveAraMHash(param.thisObject);
+                recordRecentCall(param.thisObject, callerPackage, araMHash);
 
                 if (targetApps.isEmpty() && targetHashes.isEmpty()) {
                     return;
@@ -140,6 +144,26 @@ public class MainHook implements IXposedHookLoadPackage {
             }
         }
         return null;
+    }
+
+    private static void recordRecentCall(Object accessControlEnforcer, String callerPackage, String araMHash) {
+        if (isEmpty(callerPackage) && isEmpty(araMHash)) {
+            return;
+        }
+        Object contextObject = readField(accessControlEnforcer, "mContext");
+        if (!(contextObject instanceof Context)) {
+            return;
+        }
+        Context context = (Context) contextObject;
+        Intent intent = new Intent(Prefs.ACTION_RECORD_RECENT_CALL);
+        intent.setPackage(BuildConfig.APPLICATION_ID);
+        intent.putExtra(Prefs.EXTRA_CALLER_PACKAGE, callerPackage);
+        intent.putExtra(Prefs.EXTRA_ARAM_HASH, araMHash);
+        try {
+            context.sendBroadcast(intent);
+        } catch (Throwable ignored) {
+            // Ignore broadcast failures to avoid impacting OMAPI flow.
+        }
     }
 
     private static String normalizeHashObject(Object value) {

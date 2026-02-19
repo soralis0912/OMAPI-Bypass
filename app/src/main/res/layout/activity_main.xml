@@ -125,5 +125,28 @@
             android:text="@string/list_empty_placeholder"
             android:textAppearance="@android:style/TextAppearance.Material.Small" />
 
+        <TextView
+            android:id="@+id/text_recent_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/recent_calls_title"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/button_add_from_recent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/add_from_recent" />
+
+        <TextView
+            android:id="@+id/text_recent_calls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/list_empty_placeholder"
+            android:textAppearance="@android:style/TextAppearance.Material.Small" />
+
     </LinearLayout>
 </ScrollView>
