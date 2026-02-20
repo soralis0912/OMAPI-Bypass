@@ -15,7 +15,7 @@ https://github.com/soralis0912/OMAPI-PolicyHook/releases
 ## How It Works
 
 The module hooks
-`com.android.se.security.AccessControlEnforcer.readSecurityProfile`,
+`com.android.se.security.AccessControlEnforcer.setUpChannelAccess`,
 disables `mUseArf` and `mUseAra`, and sets `mFullAccess`.
 
 If changes do not take effect immediately, restart the SE service:
@@ -26,4 +26,4 @@ su -c killall com.android.se
 
 Logcat tag: `OMAPI-PolicyHook`  
 Reference:
-[AccessControlEnforcer.java](https://cs.android.com/android/platform/superproject/main/+/main:packages/apps/SecureElement/src/com/android/se/security/AccessControlEnforcer.java;l=129)
+[AccessControlEnforcer.java](https://cs.android.com/android/platform/superproject/main/+/main:packages/apps/SecureElement/src/com/android/se/security/AccessControlEnforcer.java)
